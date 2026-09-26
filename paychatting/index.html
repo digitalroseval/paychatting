@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chatter Pay Calculator</title>
+<style>
+  :root {
+    --bg: #0b0d12;
+    --bg-soft: #12151d;
+    --card: #171b26;
+    --card-border: #232939;
+    --text: #eef1f7;
+    --text-dim: #8b93a7;
+    --accent: #6c7bff;
+    --accent-soft: rgba(108, 123, 255, 0.12);
+    --green: #3ddc97;
+    --green-soft: rgba(61, 220, 151, 0.12);
+    --radius: 16px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background:
+      radial-gradient(900px 500px at 80% -10%, rgba(108,123,255,.14), transparent 60%),
+      radial-gradient(700px 400px at 10% 110%, rgba(61,220,151,.08), transparent 60%),
+      var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 48px 20px 80px;
+  }
+
+  .wrap { width: 100%; max-width: 640px; }
+
+  header { text-align: center; margin-bottom: 40px; }
+
+  .badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border: 1px solid rgba(108,123,255,.25);
+    border-radius: 999px;
+    padding: 6px 14px;
+    margin-bottom: 18px;
+  }
+
+  h1 { font-size: clamp(28px, 5vw, 40px); font-weight: 800; letter-spacing: -0.02em; }
+  h1 span { color: var(--accent); }
+
+  header p { color: var(--text-dim); margin-top: 10px; font-size: 15px; }
+
+  .section-label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin: 28px 0 12px;
+  }
+
+  /* Plan cards */
+  .plans { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 520px) { .plans { grid-template-columns: 1fr; } }
+
+  .plan {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 20px;
+    cursor: pointer;
+    transition: border-color .2s, transform .15s, box-shadow .2s;
+    position: relative;
+  }
+  .plan:hover { transform: translateY(-2px); border-color: #38415a; }
+  .plan.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft), 0 12px 32px rgba(0,0,0,.35);
+  }
+  .plan.selected::after {
+    content: "✓";
+    position: absolute;
+    top: 14px; right: 14px;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .plan h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .plan .tagline { font-size: 13px; color: var(--text-dim); line-height: 1.5; margin-bottom: 14px; }
+
+  .tiers { list-style: none; font-size: 12.5px; color: var(--text-dim); }
+  .tiers li {
+    display: flex; justify-content: space-between;
+    padding: 4px 0;
+    border-top: 1px dashed var(--card-border);
+  }
+  .tiers li strong { color: var(--text); font-weight: 600; }
+
+  /* Inputs */
+  .inputs {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 22px;
+    display: grid;
+    gap: 18px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-dim);
+  }
+
+  .input-shell {
+    display: flex;
+    align-items: center;
+    background: var(--bg-soft);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 0 14px;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .input-shell:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .input-shell .prefix, .input-shell .suffix { color: var(--text-dim); font-size: 15px; }
+
+  .input-shell input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-size: 17px;
+    font-weight: 600;
+    padding: 14px 10px;
+    width: 100%;
+    -moz-appearance: textfield;
+  }
+  .input-shell input::-webkit-outer-spin-button,
+  .input-shell input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  #hoursField { display: none; }
+  #hoursField.visible { display: block; }
+
+  /* Results */
+  .results {
+    margin-top: 26px;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    display: none;
+  }
+  .results.visible { display: block; animation: rise .35s ease; }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .results .rows { padding: 8px 22px; }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--card-border);
+    font-size: 14.5px;
+  }
+  .row:last-child { border-bottom: none; }
+  .row .k { color: var(--text-dim); }
+  .row .v { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .row .v.neg { color: #ff7a8a; }
+
+  .rate-chip {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 6px;
+    padding: 2px 8px;
+    margin-left: 8px;
+  }
+
+  .total {
+    background: linear-gradient(135deg, rgba(61,220,151,.14), rgba(108,123,255,.10));
+    border-top: 1px solid var(--card-border);
+    padding: 20px 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .total .k { font-size: 13px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text-dim); }
+  .total .v { font-size: 32px; font-weight: 800; color: var(--green); font-variant-numeric: tabular-nums; }
+
+  footer {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 12.5px;
+    margin-top: 34px;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="badge">Compensation Calculator</div>
+    <h1>Know your <span>pay</span>, instantly.</h1>
+    <p>Pick your plan, enter your numbers, see exactly what you earn.</p>
+  </header>
+
+  <div class="section-label">1 · Choose your compensation plan</div>
+  <div class="plans">
+    <div class="plan" id="planFixed" role="button" tabindex="0" aria-pressed="false">
+      <h3>Fixed + Commission</h3>
+      <p class="tagline">Guaranteed $2/h base pay, plus a commission on your sales. Security first.</p>
+      <ul class="tiers">
+        <li><span>Up to $1,000</span><strong>5%</strong></li>
+        <li><span>$1,000 – $3,000</span><strong>6%</strong></li>
+        <li><span>$3,000 – $5,000</span><strong>7%</strong></li>
+        <li><span>$5,000 – $7,000</span><strong>10%</strong></li>
+        <li><span>Above $7,000</span><strong>12%</strong></li>
+      </ul>
+    </div>
+    <div class="plan" id="planCommission" role="button" tabindex="0" aria-pressed="false">
+      <h3>Commission Only</h3>
+      <p class="tagline">No hourly base — but much higher percentages. For top performers.</p>
+      <ul class="tiers">
+        <li><span>Up to $1,000</span><strong>8%</strong></li>
+        <li><span>$1,000 – $3,000</span><strong>11%</strong></li>
+        <li><span>$3,000 – $5,000</span><strong>14%</strong></li>
+        <li><span>$5,000 – $7,000</span><strong>17%</strong></li>
+        <li><span>Above $7,000</span><strong>20%</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-label">2 · Enter your numbers</div>
+  <div class="inputs">
+    <div class="field">
+      <label for="sales">Net sales generated (monthly)</label>
+      <div class="input-shell">
+        <span class="prefix">$</span>
+        <input type="number" id="sales" min="0" step="any" placeholder="e.g. 4500" inputmode="decimal">
+      </div>
+    </div>
+    <div class="field" id="hoursField">
+      <label for="hours">Hours worked (monthly)</label>
+      <div class="input-shell">
+        <input type="number" id="hours" min="0" step="any" placeholder="e.g. 160" inputmode="decimal">
+        <span class="suffix">hours</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="results" id="results">
+    <div class="rows">
+      <div class="row"><span class="k">Total sales</span><span class="v" id="rSales">—</span></div>
+      <div class="row"><span class="k">OnlyFans fee (20%)</span><span class="v neg" id="rFee">—</span></div>
+      <div class="row"><span class="k">Eligible amount (80%)</span><span class="v" id="rEligible">—</span></div>
+      <div class="row"><span class="k">Commission<span class="rate-chip" id="rRate">—</span></span><span class="v" id="rCommission">—</span></div>
+      <div class="row" id="rowHourly"><span class="k">Hourly pay <span class="rate-chip" id="rHourlyDetail">$2/h</span></span><span class="v" id="rHourly">—</span></div>
+    </div>
+    <div class="total">
+      <span class="k">Total Pay</span>
+      <span class="v" id="rTotal">$0.00</span>
+    </div>
+  </div>
+
+  <footer>
+    Commission rates apply to the eligible amount (80% of sales, after the OnlyFans platform fee).<br>
+    Your tier is determined by your total monthly sales.
+  </footer>
+</div>
+
+<script>
+  const HOURLY_RATE = 2;
+
+  // [upper bound of gross sales, rate] — last tier catches everything above.
+  const TIERS = {
+    fixed:      [[1000, 0.05], [3000, 0.06], [5000, 0.07], [7000, 0.10], [Infinity, 0.12]],
+    commission: [[1000, 0.08], [3000, 0.11], [5000, 0.14], [7000, 0.17], [Infinity, 0.20]],
+  };
+
+  let plan = null;
+
+  const $ = (id) => document.getElementById(id);
+  const planFixed = $("planFixed");
+  const planCommission = $("planCommission");
+  const hoursField = $("hoursField");
+  const results = $("results");
+  const salesInput = $("sales");
+  const hoursInput = $("hours");
+
+  const fmt = (n) => "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  function selectPlan(which) {
+    plan = which;
+    planFixed.classList.toggle("selected", which === "fixed");
+    planCommission.classList.toggle("selected", which === "commission");
+    planFixed.setAttribute("aria-pressed", which === "fixed");
+    planCommission.setAttribute("aria-pressed", which === "commission");
+    hoursField.classList.toggle("visible", which === "fixed");
+    $("rowHourly").style.display = which === "fixed" ? "" : "none";
+    update();
+  }
+
+  function rateFor(sales) {
+    for (const [limit, rate] of TIERS[plan]) {
+      if (sales <= limit) return rate;
+    }
+  }
+
+  function update() {
+    const sales = parseFloat(salesInput.value);
+    if (!plan || isNaN(sales) || sales < 0) {
+      results.classList.remove("visible");
+      return;
+    }
+
+    const fee = sales * 0.20;
+    const eligible = sales * 0.80;
+    const rate = rateFor(sales);
+    const commission = eligible * rate;
+
+    let hourlyPay = 0;
+    if (plan === "fixed") {
+      const hours = parseFloat(hoursInput.value);
+      hourlyPay = (isNaN(hours) || hours < 0) ? 0 : hours * HOURLY_RATE;
+    }
+
+    $("rSales").textContent = fmt(sales);
+    $("rFee").textContent = "−" + fmt(fee);
+    $("rEligible").textContent = fmt(eligible);
+    $("rRate").textContent = (rate * 100).toFixed(0) + "%";
+    $("rCommission").textContent = fmt(commission);
+    $("rHourly").textContent = fmt(hourlyPay);
+    $("rTotal").textContent = fmt(commission + hourlyPay);
+
+    results.classList.add("visible");
+  }
+
+  planFixed.addEventListener("click", () => selectPlan("fixed"));
+  planCommission.addEventListener("click", () => selectPlan("commission"));
+  [planFixed, planCommission].forEach((el) => {
+    el.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        selectPlan(el === planFixed ? "fixed" : "commission");
+      }
+    });
+  });
+
+  salesInput.addEventListener("input", update);
+  hoursInput.addEventListener("input", update);
+</script>
+</body>
+</html>
