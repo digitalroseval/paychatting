@@ -246,11 +246,11 @@
       <h3>Commission Only</h3>
       <p class="tagline">No hourly base — but much higher percentages. For top performers.</p>
       <ul class="tiers">
-        <li><span>Up to $1,000</span><strong>8%</strong></li>
-        <li><span>$1,000 – $3,000</span><strong>11%</strong></li>
-        <li><span>$3,000 – $5,000</span><strong>14%</strong></li>
-        <li><span>$5,000 – $7,000</span><strong>17%</strong></li>
-        <li><span>Above $7,000</span><strong>20%</strong></li>
+        <li><span>Up to $1,000</span><strong>10%</strong></li>
+        <li><span>$1,000 – $3,000</span><strong>13%</strong></li>
+        <li><span>$3,000 – $5,000</span><strong>16%</strong></li>
+        <li><span>$5,000 – $7,000</span><strong>19%</strong></li>
+        <li><span>Above $7,000</span><strong>22%</strong></li>
       </ul>
     </div>
   </div>
@@ -299,7 +299,7 @@
   // [upper bound of gross sales, rate] — last tier catches everything above.
   const TIERS = {
     fixed:      [[1000, 0.05], [3000, 0.06], [5000, 0.07], [7000, 0.10], [Infinity, 0.12]],
-    commission: [[1000, 0.08], [3000, 0.11], [5000, 0.14], [7000, 0.17], [Infinity, 0.20]],
+    commission: [[1000, 0.10], [3000, 0.13], [5000, 0.16], [7000, 0.19], [Infinity, 0.22]],
   };
 
   let plan = null;
